@@ -221,6 +221,8 @@ class Robot
 {
   public:
     String name;
+    boolean sdCardReady;
+    char historyFilenameChar[25]; // need a char array for sd card open
     boolean developerActive;
     boolean ConsoleToPfod;
     // --------- state machine --------------------------
@@ -608,7 +610,8 @@ class Robot
     int perimeterMag ;             // perimeter magnitude
     int perimeterMagRight ;             // perimeter magnitude
     byte areaInMowing;              //it's the area in mowing nr
-    boolean perimeterInside ;      // is inside perimeter?
+    boolean perimeterInsideLeft ;      // is inside perimeter?
+    boolean perimeterInsideRight ;      // is inside perimeter?
     unsigned long perimeterTriggerTime; // time to trigger perimeter transition (timeout)
     int perimeterTriggerMinSmag;   // perimeter trigger minimum smag use on center of big area ,the Smag can be 200 and transition can occur
     unsigned long perimeterLastTransitionTime;
@@ -846,7 +849,7 @@ class Robot
     virtual void newTagFind();
     virtual void autoReboot();
     virtual void teensyBootLoader();
-    
+
     // other
     // virtual void beep(int numberOfBeeps, boolean shortbeep);
     virtual void printInfo(Stream &s);
@@ -865,6 +868,9 @@ class Robot
 
     virtual void ResetWatchdog();
 
+
+    virtual void writeOnSD(String message);
+    virtual void writeOnSDln(String message);
     virtual void ShowMessage(String message);
     virtual void ShowMessageln(String message);
     virtual void ShowMessage(float value);
@@ -934,6 +940,8 @@ class Robot
     virtual void OdoRampCompute() ;
     virtual void motorControlOdo() ;
     virtual void motorControlPerimeter();
+    virtual void motorControlPerimeter2Coil();
+
     virtual void readAllTemperature();
     virtual void motorMowControl();
 
