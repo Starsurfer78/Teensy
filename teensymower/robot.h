@@ -49,7 +49,7 @@ const int chipSelect = BUILTIN_SDCARD;
 
 
 // code version
-#define VER "1.415-Teensyber"
+#define VER "1.421-Teensyber"
 
 
 // sensors
@@ -475,6 +475,7 @@ class Robot
     boolean UseBrakeLeft;
     boolean moveRightFinish;
     boolean moveLeftFinish;
+    boolean useMotorDriveBrake;   //for ZS-X11H BL motor driver it's possible to use the brake option for slope management
 
     boolean odoLeftRightCorrection;
     boolean autoAdjustSlopeSpeed;
@@ -537,7 +538,7 @@ class Robot
     boolean tiltUse       ;      // has tilt sensor?
     boolean tilt;
     boolean coverIsClosed;
-    
+
     int bumper_rev_distance ;
     boolean bumperLeft ;
     int bumperLeftCounter ;
@@ -636,6 +637,10 @@ class Robot
 
     // Perimeter perimeter;
     boolean perimeterUse       ;      // use perimeter?
+    boolean read2Coil;                // use left and right coil
+    // swap coil polarity?
+    boolean swapCoilPolarityLeft;     //invert coil signal + -
+    boolean swapCoilPolarityRight;
     //int perimeterOutRollTimeMax ;  //free but conserve for eeprom recovery
     //int perimeterOutRollTimeMin ;   //free but conserve for eeprom recovery
     int perimeterOutRevTime  ;
@@ -890,6 +895,7 @@ class Robot
     virtual void newTagFind();
     virtual void autoReboot();
     virtual void teensyBootLoader();
+    virtual void powerOff_pcb();
 
     // other
     // virtual void beep(int numberOfBeeps, boolean shortbeep);
