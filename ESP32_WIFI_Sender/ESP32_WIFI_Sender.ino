@@ -43,11 +43,10 @@ IPAddress dns(10, 0, 0, 1);  // put here one dns (IP of your routeur)
 #define WORKING_TIMEOUT_MINS 300  // timeout for perimeter switch-off if robot not in station (minutes)
 #define PERI_CURRENT_MIN 100      // minimum milliAmpere for cutting wire detection
 #define AUTO_START_SIGNAL 0       //use to start sender when mower leave station
+//********************* END Settings **********************************
 
 INA226 INAPERI;
 INA226 INACHARGE;
-//********************* END Settings **********************************
-
 
 byte sigCodeInUse = 1;  //1 is the original ardumower sigcode
 int sigDuration = 104;  // send the bits each 104 microsecond (Also possible 50)
@@ -65,11 +64,11 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 //#define MOWER_STATION_CHANNEL 2
 #define pinIN1 12      // M1_IN1  ESP32 GPIO15       ( connect this pin to L298N-IN1)
 #define pinIN2 13      // M1_IN2  ESP32 GPIO14       ( connect this pin to L298N-IN2)
-#define pinEnableA 30  // ENA    ESP32 GPIO23         (connect this pin to L298N-ENA)
+#define pinEnableA 23  // ENA    ESP32 GPIO23         (connect this pin to L298N-ENA)
 //possible to use the same gpio 12 and 13  instead of 14 and 18
-#define pinIN3 11      // M1_IN3  ESP32 GPIO16       ( connect this pin to L298N-IN3)
-#define pinIN4 24      // M1_IN4  ESP32 GPIO18       ( connect this pin to L298N-IN4)
-#define pinEnableB 25  // ENB    ESP32 GPIO19        (connect this pin to L298N-ENA)
+#define pinIN3 14      // M1_IN3  ESP32 GPIO16       ( connect this pin to L298N-IN3)
+#define pinIN4 18      // M1_IN4  ESP32 GPIO18       ( connect this pin to L298N-IN4)
+#define pinEnableB 19  // ENB    ESP32 GPIO19        (connect this pin to L298N-ENA)
 
 #define pinDoorOpen 4   //Not in use (Magnetic switch)
 #define pinDoorClose 5  //Not in use (Magnetic switch)
@@ -284,6 +283,10 @@ static void ScanNetwork() {
     PeriCurrent = PeriCurrent - 100.0;                         //the DC/DC,ESP32,LN298N can drain up to 300 ma when scanning network
     if (PeriCurrent <= 5) PeriCurrent = 0;                     //
     PeriCurrent = PeriCurrent * busvoltage1 / DcDcOutVoltage;  // it's 3.2666 = 29.4/9.0 the power is read before the DC/DC converter so the current change according : 29.4V is the Power supply 9.0V is the DC/DC output voltage (Change according your setting)
+    
+    Serial.print("Pericurr ");
+    Serial.println(PeriCurrent);
+  
     oled.setTextXY(5, 0);
     oled.putString("Pericurr ");
     oled.setTextXY(5, 10);
@@ -296,6 +299,10 @@ static void ScanNetwork() {
   if (USE_STATION) {
     ChargeCurrent = INACHARGE.readShuntCurrent();
     if (ChargeCurrent <= 5) ChargeCurrent = 0;
+
+    Serial.print("Charcurr ");
+    Serial.println(ChargeCurrent);
+
     oled.setTextXY(6, 0);
     oled.putString("Charcurr ");
     oled.setTextXY(6, 10);
@@ -303,6 +310,7 @@ static void ScanNetwork() {
     oled.setTextXY(6, 10);
     oled.putFloat(ChargeCurrent, 0);
   }
+
   delay(5000);  // wait until all is disconnect
   int n = WiFi.scanNetworks();
   if (n == -1) {
@@ -440,6 +448,7 @@ void loop() {
 
       if ((enableSenderA) && (PeriCurrent < PERI_CURRENT_MIN)) {
         oled.setTextXY(5, 0);
+        Serial.println("  Wire is Cut  ");
         oled.putString("  Wire is Cut  ");
       } else {
         oled.setTextXY(5, 0);
