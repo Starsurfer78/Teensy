@@ -365,6 +365,7 @@ static void ScanNetwork() {
 void setup() {
   //------------------------  Signal parts  ----------------------------------------
   Serial.begin(115200);
+  Wire.begin();
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, 104, true);
@@ -415,7 +416,6 @@ void setup() {
   //oled.putString("2 LOOPS");
   //------------------------  current sensor parts  ----------------------------------------
   Serial.println("Measuring voltage and current using INA226 ...");
-  Wire.begin();
   INAPERI.begin(0x40);
   INACHARGE.begin(0x44);
 //  Serial.print("Manufactures ID=0x");
