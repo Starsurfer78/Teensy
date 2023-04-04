@@ -22,18 +22,18 @@
 #include "ACROBOTIC_SSD1306.h"
 
 //********************* User Setting **********************************
-const char* ssid = "WAVLINK-N";          // put here your acces point ssid
-const char* password = "basicsheep713";  // put here the password
+const char* ssid = "YOUR SID";          // put here your acces point ssid
+const char* password = "YOUR PASSWORT";  // put here the password
 
 //********************* setting for current sensor **********************************
 //Use to have a correct value on perricurrent (Need to change the value each time you adjust the DC DC )
 float DcDcOutVoltage = 9.0; //Check if it is needed for INA226 (Sascha) 
 
 //********************* IP Adress Settings **********************************
-IPAddress staticIP(10, 0, 0, 155);  // put here the static IP
-IPAddress gateway(10, 0, 0, 1);     // put here the gateway (IP of your routeur)
+IPAddress staticIP(192, 168, 178, 155);  // put here the static IP
+IPAddress gateway(192, 168, 178, 1);     // put here the gateway (IP of your routeur)
 IPAddress subnet(255, 255, 255, 0);
-IPAddress dns(10, 0, 0, 1);  // put here one dns (IP of your routeur)
+IPAddress dns(192, 168, 178, 1);  // put here one dns (IP of your routeur)
 
 
 #define USE_STATION 1             // a station is connected and is used to charge the mower
@@ -422,24 +422,35 @@ void setup() {
   //oled.putString("2 LOOPS");
   //------------------------  current sensor parts  ----------------------------------------
   Serial.println("Measuring voltage and current using INA226 ...");
-  INAPERI.begin(0x40);
+  if (!INAPERI.begin(0x40) )
+  {
+    Serial.println("INAPERI could not connect. Fix and Reboot");
+  }
   INAPERI.calibrate(0.1, 1);
-  INACHARGE.begin(0x44);
+
+  if (!INACHARGE.begin(0x40) )
+  {
+    Serial.println("INACHARGE could not connect. Fix and Reboot");
+  }
+  
   INACHARGE.calibrate(0.1, 1);
 //  Serial.print("Manufactures ID=0x");
 //  int MID;
 //  MID = ina3221.getManufID();
 //  Serial.println(MID, HEX);
   delay(5000);
+  Serial.println("Setup END ...");
 }
 // SETUP END
 
 
 // LOOP BEGIN
 void loop() {
+  Serial.println("I am the LOOP");
   if (millis() >= nextTimeControl) {
     nextTimeControl = millis() + 1000;  //after debug can set this to 10 secondes
     //StartButtonProcess = false;
+    
     oled.setTextXY(4, 0);
     oled.putString("worktime = ");
     oled.setTextXY(4, 10);
