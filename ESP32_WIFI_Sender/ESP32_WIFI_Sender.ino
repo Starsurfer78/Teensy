@@ -43,6 +43,11 @@ IPAddress dns(10, 0, 0, 1);  // put here one dns (IP of your routeur)
 #define WORKING_TIMEOUT_MINS 300  // timeout for perimeter switch-off if robot not in station (minutes)
 #define PERI_CURRENT_MIN 100      // minimum milliAmpere for cutting wire detection
 #define AUTO_START_SIGNAL 0       //use to start sender when mower leave station
+
+//********************* PIN Settings **********************************
+#define SDA 22
+#define SCL 21
+
 //********************* END Settings **********************************
 
 INA226 INAPERI;
@@ -365,7 +370,8 @@ static void ScanNetwork() {
 void setup() {
   //------------------------  Signal parts  ----------------------------------------
   Serial.begin(115200);
-  Wire.begin();
+  //Wire.begin();
+  Wire.begin(SDA,SCL);
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, 104, true);
@@ -417,7 +423,9 @@ void setup() {
   //------------------------  current sensor parts  ----------------------------------------
   Serial.println("Measuring voltage and current using INA226 ...");
   INAPERI.begin(0x40);
+  INAPERI.calibrate(0.1, 1);
   INACHARGE.begin(0x44);
+  INACHARGE.calibrate(0.1, 1);
 //  Serial.print("Manufactures ID=0x");
 //  int MID;
 //  MID = ina3221.getManufID();
@@ -461,6 +469,7 @@ void loop() {
     }
 
     if ((WiFi.status() != WL_CONNECTED)) ScanNetwork();
+    
     if (workTimeMins >= WORKING_TIMEOUT_MINS) {
       // switch off perimeter
       enableSenderA = false;
