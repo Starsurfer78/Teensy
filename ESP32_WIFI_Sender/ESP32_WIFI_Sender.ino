@@ -22,8 +22,8 @@
 #include "ACROBOTIC_SSD1306.h"
 
 //********************* User Setting **********************************
-const char* ssid = "YOUR SID";          // put here your acces point ssid
-const char* password = "YOUR PASSWORT";  // put here the password
+const char* ssid = "LB-SD";          // put here your acces point ssid
+const char* password = "56126942568484224772";  // put here the password
 
 //********************* setting for current sensor **********************************
 //Use to have a correct value on perricurrent (Need to change the value each time you adjust the DC DC )
@@ -34,6 +34,7 @@ IPAddress staticIP(192, 168, 178, 155);  // put here the static IP
 IPAddress gateway(192, 168, 178, 1);     // put here the gateway (IP of your routeur)
 IPAddress subnet(255, 255, 255, 0);
 IPAddress dns(192, 168, 178, 1);  // put here one dns (IP of your routeur)
+WiFiServer server(80);
 
 
 #define USE_STATION 1             // a station is connected and is used to charge the mower
@@ -41,7 +42,7 @@ IPAddress dns(192, 168, 178, 1);  // put here one dns (IP of your routeur)
 #define USE_BUTTON 0              // use button to start mowing or send mower to station not finish to dev
 #define USE_RAINFLOW 0            // check the amount of rain not finish to dev on 31/08/2020
 #define WORKING_TIMEOUT_MINS 300  // timeout for perimeter switch-off if robot not in station (minutes)
-#define PERI_CURRENT_MIN 100      // minimum milliAmpere for cutting wire detection
+#define PERI_CURRENT_MIN 0.100      // minimum milliAmpere for cutting wire detection
 #define AUTO_START_SIGNAL 0       //use to start sender when mower leave station
 
 //********************* PIN Settings **********************************
@@ -49,24 +50,19 @@ IPAddress dns(192, 168, 178, 1);  // put here one dns (IP of your routeur)
 #define SCL 21
 
 //********************* END Settings **********************************
+INA226 INAPERI;   //(0x40)
+INA226 INACHARGE; //(0x44) Bridge at A1 - VSS
 
-INA226 INAPERI;
-INA226 INACHARGE;
 
 byte sigCodeInUse = 1;  //1 is the original ardumower sigcode
 int sigDuration = 104;  // send the bits each 104 microsecond (Also possible 50)
 int8_t sigcode_norm[128];
 int sigcode_size;
 
-
 hw_timer_t* timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
-
-//#define I2C_SDA 4
-//#define I2C_SCL 15
-//#define PERI_CURRENT_CHANNEL 1
-//#define MOWER_STATION_CHANNEL 2
+//********************* PORT Settings **********************************
 #define pinIN1 12      // M1_IN1  ESP32 GPIO15       ( connect this pin to L298N-IN1)
 #define pinIN2 13      // M1_IN2  ESP32 GPIO14       ( connect this pin to L298N-IN2)
 #define pinEnableA 23  // ENA    ESP32 GPIO23         (connect this pin to L298N-ENA)
@@ -83,15 +79,14 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 //#define pinPushButton 34  //           (connect to Button) //R1 2.2K R2 3.3K
 //#define pinRainFlow 35    //           (connect to Rain box) //R3 2.2K R4 3.3K
+//********************* PORT END **********************************
 
-
-// code version
+// Code Version
 #define VER "ESP32 3.0"
 
 volatile int step = 0;
 boolean enableSenderA = false;  //OFF on start to autorise the reset
 boolean enableSenderB = false;  //OFF on start to autorise the reset
-//boolean WiffiRequestOn = true;
 
 
 int timeSeconds = 0;
@@ -100,12 +95,12 @@ unsigned long nextTimeInfo = 0;
 unsigned long nextTimeSec = 0;
 unsigned long nextTimeCheckButton = 0;
 int workTimeMins = 0;
-//boolean StartButtonProcess = false;
 
+//boolean StartButtonProcess = false;
 //int Button_pressed = 0;
 
-
 float PeriCurrent = 0;
+float PeriCurrent2 = 0;
 float ChargeCurrent = 0;
 float busvoltage1 = 0;
 
@@ -124,10 +119,9 @@ int8_t sigcode3[] = { 1, 1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1
                       -1, 1, 1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, -1, 1 };  // 128 Zahlen from Roland
 int8_t sigcode4[] = { 1, 1, 1, -1, -1, -1 };                                                                                                                                                                                                              //extend square test code
 
-WiFiServer server(80);
-//SDL_Arduino_INA3221 ina3221;
 
-void IRAM_ATTR onTimer() {  // management of the signal
+ // management of the signal
+void IRAM_ATTR onTimer() {
   portENTER_CRITICAL_ISR(&timerMux);
   if (enableSenderA) {
 
@@ -149,7 +143,6 @@ void IRAM_ATTR onTimer() {  // management of the signal
     }
   }
   if (enableSenderB) {
-
     if (sigcode_norm[step] == 1) {
       digitalWrite(pinIN3, LOW);
       digitalWrite(pinIN4, HIGH);
@@ -169,6 +162,7 @@ void IRAM_ATTR onTimer() {  // management of the signal
   }
   portEXIT_CRITICAL_ISR(&timerMux);
 }
+
 
 String IPAddress2String(IPAddress address) {
   return String(address[0]) + "." + String(address[1]) + "." + String(address[2]) + "." + String(address[3]);
@@ -228,9 +222,8 @@ void changeArea(byte areaInMowing) {  // not finish to dev
   Serial.println();
   Serial.print("New sigcode size  : ");
   Serial.println(sigcode_size);
-  //enableSenderA = true;
-  //enableSenderB = true;
 }
+
 
 void connection() {
   oled.clearDisplay();
@@ -243,6 +236,7 @@ void connection() {
     if (WiFi.status() != WL_CONNECTED) {
       oled.setTextXY(0, 0);
       oled.putString("Try connecting");
+      Serial.println("Try connecting");
       delay(250);
     }
   }
@@ -261,27 +255,28 @@ void connection() {
   }
 }
 
+
 static void ScanNetwork() {
   oled.clearDisplay();
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   oled.setTextXY(0, 0);
   oled.putString("Hotspot Lost");
-  if (enableSenderA) {
+  if ((enableSenderA) || (enableSenderB)) {
     oled.setTextXY(3, 0);
-    oled.putString("Sender ON ");
+    oled.putString("Sender ON");
   } else {
     oled.setTextXY(3, 0);
     oled.putString("Sender OFF");
   }
 
   oled.setTextXY(4, 0);
-  oled.putString("worktime= ");
+  oled.putString("Worktime= ");
   oled.setTextXY(4, 10);
   oled.putString("     ");
   oled.setTextXY(4, 10);
   oled.putFloat(workTimeMins, 0);
-
+/*
   if (USE_PERI_CURRENT) {
     busvoltage1 = INAPERI.readBusVoltage();
     PeriCurrent = INAPERI.readShuntCurrent();
@@ -315,7 +310,7 @@ static void ScanNetwork() {
     oled.setTextXY(6, 10);
     oled.putFloat(ChargeCurrent, 0);
   }
-
+*/
   delay(5000);  // wait until all is disconnect
   int n = WiFi.scanNetworks();
   if (n == -1) {
@@ -326,7 +321,10 @@ static void ScanNetwork() {
     oled.setTextXY(2, 0);
     oled.putString("If sender is OFF");
     delay(5000);
-    if ((!enableSenderA) && (!enableSenderB)) ESP.restart();  // do not reset if sender is ON
+    if ((!enableSenderA) && (!enableSenderB)) {
+    Serial.println("RESTART ESP");
+    ESP.restart();  // do not reset if sender is ON
+    }
   }
   if (n == -2)
   //bug in esp32 if wifi is lost many time the esp32 fail to autoreconnect,maybe solve in other firmware ???????
@@ -338,7 +336,10 @@ static void ScanNetwork() {
     oled.setTextXY(2, 0);
     oled.putString("If sender is Off");
     delay(5000);
-    if ((!enableSenderA) && (!enableSenderB)) ESP.restart();
+    if ((!enableSenderA) && (!enableSenderB)) {
+    Serial.println("RESTART ESP");
+    ESP.restart();  // do not reset if sender is ON
+    }
   }
   if (n == 0) {
     oled.setTextXY(0, 0);
@@ -395,9 +396,11 @@ void setup() {
   changeArea(sigCodeInUse);
   if (enableSenderA) {
     digitalWrite(pinEnableA, HIGH);
+    Serial.println("ENABLE SENDER A");
   }
   if (enableSenderB) {
     digitalWrite(pinEnableB, HIGH);
+    Serial.println("ENABLE SENDER A");
   }
   //------------------------  WIFI parts  ----------------------------------------
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
@@ -419,25 +422,16 @@ void setup() {
   oled.setTextXY(2, 0);  // Set cursor position, start of line 2
   oled.putString(VER);
   oled.setTextXY(3, 0);  // Set cursor position, line 2 10th character
-  //oled.putString("2 LOOPS");
+  oled.putString("2 LOOPS");
   //------------------------  current sensor parts  ----------------------------------------
   Serial.println("Measuring voltage and current using INA226 ...");
-  if (!INAPERI.begin(0x40) )
-  {
-    Serial.println("INAPERI could not connect. Fix and Reboot");
-  }
+  
+  INAPERI.begin(0x40);
   INAPERI.calibrate(0.1, 1);
 
-  if (!INACHARGE.begin(0x40) )
-  {
-    Serial.println("INACHARGE could not connect. Fix and Reboot");
-  }
-  
+  INACHARGE.begin(0x41);
   INACHARGE.calibrate(0.1, 1);
-//  Serial.print("Manufactures ID=0x");
-//  int MID;
-//  MID = ina3221.getManufID();
-//  Serial.println(MID, HEX);
+  
   delay(5000);
   Serial.println("Setup END ...");
 }
@@ -446,13 +440,13 @@ void setup() {
 
 // LOOP BEGIN
 void loop() {
-  Serial.println("I am the LOOP");
+ // Serial.println("I am the LOOP");
   if (millis() >= nextTimeControl) {
     nextTimeControl = millis() + 1000;  //after debug can set this to 10 secondes
     //StartButtonProcess = false;
     
     oled.setTextXY(4, 0);
-    oled.putString("worktime = ");
+    oled.putString("Worktime = ");
     oled.setTextXY(4, 10);
     oled.putString("     ");
     oled.setTextXY(4, 10);
@@ -460,12 +454,37 @@ void loop() {
     if (USE_PERI_CURRENT) {
       busvoltage1 = INAPERI.readBusVoltage();
       PeriCurrent = INAPERI.readShuntCurrent();
-      PeriCurrent = PeriCurrent - 100.0;                         //the DC/DC,ESP32,LN298N drain 100 ma when nothing is ON and a wifi access point is found (To confirm ????)
-      if (PeriCurrent <= 5) PeriCurrent = 0;                     //
-      PeriCurrent = PeriCurrent * busvoltage1 / DcDcOutVoltage;  // it's 3.2666 = 29.4/9.0 the power is read before the DC/DC converter so the current change according : 29.4V is the Power supply 9.0V is the DC/DC output voltage (Change according your setting)
+      PeriCurrent2 = PeriCurrent - 100.0;                         //the DC/DC,ESP32,LN298N drain 100 ma when nothing is ON and a wifi access point is found (To confirm ????)
+      if (PeriCurrent2 <= 5) PeriCurrent2 = 0;                     //
+      PeriCurrent2 = PeriCurrent2 * busvoltage1 / DcDcOutVoltage;  // it's 3.2666 = 29.4/9.0 the power is read before the DC/DC converter so the current change according : 29.4V is the Power supply 9.0V is the DC/DC output voltage (Change according your setting)
 
 
-      if ((enableSenderA) && (PeriCurrent < PERI_CURRENT_MIN)) {
+  Serial.print("PeriCurrent:   ");
+  Serial.print(PeriCurrent2);
+  Serial.println(" V");
+
+  Serial.print("Bus voltage:   ");
+  Serial.print(INAPERI.readBusVoltage(), 5);
+  Serial.println(" V");
+
+  Serial.print("Bus power:     ");
+  Serial.print(INAPERI.readBusPower(), 5);
+  Serial.println(" W");
+
+
+  Serial.print("Shunt voltage: ");
+  Serial.print(INAPERI.readShuntVoltage(), 5);
+  Serial.println(" V");
+
+  Serial.print("Shunt current: ");
+  Serial.print(INAPERI.readShuntCurrent(), 5);
+  Serial.println(" A");
+
+  Serial.println("");
+
+
+      //if ((enableSenderA) && (PeriCurrent < PERI_CURRENT_MIN)) {
+       if ((PeriCurrent < PERI_CURRENT_MIN)) {
         oled.setTextXY(5, 0);
         Serial.println("  Wire is Cut  ");
         oled.putString("  Wire is Cut  ");
@@ -546,7 +565,7 @@ void loop() {
             digitalWrite(pinIN1, LOW);
             digitalWrite(pinIN2, LOW);
           } else {
-            workTimeMins = 0;
+            //workTimeMins = 0;
             enableSenderB = true;
             digitalWrite(pinEnableB, HIGH);
             digitalWrite(pinIN3, LOW);
