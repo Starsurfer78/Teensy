@@ -1117,7 +1117,9 @@ void Robot::loadSaveUserSettings(boolean readflag) {
   eereadwrite(readflag, addr, bumper_rev_distance);
   eereadwrite(readflag, addr, swapCoilPolarityLeft);
   eereadwrite(readflag, addr, useMotorDriveBrake);
-
+  eereadwrite(readflag, addr, chargingMaxDuration);
+  chargingTimeout = chargingMaxDuration * 3600000;// from hour to millis
+  
 
 
   if (readflag)
@@ -1401,6 +1403,8 @@ void Robot::printSettingSerial() {
   ShowMessageln(startChargingIfBelow);
   ShowMessage  (F("chargingTimeout      : "));
   ShowMessageln(chargingTimeout);
+   ShowMessage  (F("chargingMaxDuration  : "));
+  ShowMessageln(chargingMaxDuration);
   ShowMessage  (F("stationHeading       : "));
   ShowMessageln(stationHeading);
   ShowMessage  (F("batSenseFactor       : "));
@@ -3195,8 +3199,8 @@ void Robot::setup()  {
 
   ShowMessageln("Watchdog configuration start ");
   WDT_timings_t config;
-  config.trigger = 2; /* in seconds, 0->128 */
-  config.timeout = 10; /* in seconds, 0->128 */
+  config.trigger = 100; /* in seconds, 0->128 */
+  config.timeout = 120; /* in seconds, 0->128 */
   config.callback = myCallback;
   wdt.begin(config);
   ShowMessageln("Watchdog configuration Finish ");
@@ -3335,7 +3339,7 @@ void Robot::delayInfo(int ms) {
     // readSensors();
     printInfo(Serial);
     //watchdogReset();
-    delay(1000);
+    delay(500);
     //watchdogReset();
   }
 }
@@ -4773,6 +4777,9 @@ void Robot::setNextState(byte stateNew, byte dir) {
 
 
       OdoRampCompute();
+      wdt.feed();
+      delay(500);
+      wdt.feed();
       break;
 
     case STATE_PERI_OUT_ROLL: //roll left or right in normal mode
@@ -4868,6 +4875,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
 
 
       }
+      
       OdoRampCompute();
       break;
     case STATE_PERI_OUT_ROLL_TOTRACK:  //roll left or right in normal mode
@@ -8063,7 +8071,7 @@ void Robot::loop()  {
         return;
       }
 
-      if (LEFT_MOTOR_DRIVER == 1) { //brussless driver have it's own acceleration
+      if ((LEFT_MOTOR_DRIVER == 1) || (LEFT_MOTOR_DRIVER == 4)) { //brussless driver have it's own acceleration
         imuDirPID.reset();
         motorRightPID.reset();
         motorLeftPID.reset();
