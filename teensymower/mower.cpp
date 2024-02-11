@@ -24,6 +24,14 @@
 
 //#define USE_DEVELOPER_TEST     1      // uncomment for new perimeter signal test (developers)
 
+
+// Funktion zur Berechnung des Umfangs eines Rades basierend auf seinem Durchmesser
+double calculateWheelCircumference(double diameter) {
+    const double pi = 3.14159265358979323846;
+    return pi * diameter;
+}
+
+
 Mower robot;
 
 
@@ -275,30 +283,34 @@ Mower::Mower() {
 
 
 #if defined (MOW800)
-  name = "MOW800"; //Set the Name of platform
+  name = "MOW800"; // Set the Name of platform
   // ------- wheel motors -----------------------------
   motorRightSwapDir     = true;    // inverse right motor direction?
   motorLeftSwapDir      = false;    // inverse left motor direction?
-  motorSpeedMaxPwm    = 180;  // motor wheel max Pwm  (8-bit PWM=255, 10-bit PWM=1023)
-  motorRollDegMax    = 100;  // max. roll Deg
-  motorRollDegMin    = 20; //min. roll Deg
-  SpeedOdoMin = 50;
-  SpeedOdoMax = 140;
-  useMotorDriveBrake = false;   //for ZS-X11H BL motor driver it's possible to use the brake option for slope management
+  motorSpeedMaxPwm      = 180;     // motor wheel max Pwm (8-bit PWM=255, 10-bit PWM=1023)
+  motorRollDegMax       = 100;     // max. roll Deg
+  motorRollDegMin       = 20;      // min. roll Deg
+  SpeedOdoMin           = 50;
+  SpeedOdoMax           = 140;
+  useMotorDriveBrake    = false;   // for ZS-X11H BL motor driver it's possible to use the brake option for slope management
 
-  motorMowSpeedMaxPwm   = 210;    // motor mower max PWM
-  motorMowSpeedMinPwm = 160;   // motor mower minimum PWM (only for cutter modulation)
-  motorMowPowerMax = 30.0;     // motor mower max power (Watt)
-  highGrassSpeedCoeff = 0.7;  //drive speed coeff when detect high grass in by lane mode
+  motorMowSpeedMaxPwm   = 210;     // motor mower max PWM
+  motorMowSpeedMinPwm   = 160;     // motor mower minimum PWM (only for cutter modulation)
+  motorMowPowerMax      = 30.0;    // motor mower max power (Watt)
+  highGrassSpeedCoeff   = 0.7;     // drive speed coeff when detect high grass in by lane mode
 
-  perimeterTriggerMinSmag = 800;
-  MaxSpeedperiPwm = 120; // speed max in PWM while perimeter tracking
-  perimeterMagMaxValue = 12000; // Maximum value return when near the perimeter wire (use for tracking and slowing when near wire
+  perimeterTriggerMinSmag  = 800;
+  MaxSpeedperiPwm          = 120; // speed max in PWM while perimeter tracking
+  perimeterMagMaxValue     = 12000; // Maximum value return when near the perimeter wire (use for tracking and slowing when near wire
 
-  odometryTicksPerRevolution = 1200;   // encoder ticks per one full resolution
-  odometryTicksPerCm = 21.3;  // encoder ticks per cm
-  odometryWheelBaseCm = 33;    // wheel-to-wheel distance (cm)
+  odometryTicksPerRevolution = 1200; // encoder ticks per one full resolution
+  double wheelDiameter = 23.0;        // in cm
+  double circumference = calculateWheelCircumference(wheelDiameter);
+  double odometryTicksPerCm = odometryTicksPerRevolution / circumference;
+  odometryWheelBaseCm = 33;           // wheel-to-wheel distance (cm)
+  
 #endif
+
 
 
 
@@ -363,6 +375,7 @@ void Mower::setup() {
 
   analogWriteFrequency(pinMotorMowPWM, 20000);//default value immediatly replace by coorect one
   analogWriteFrequency(pinMotorMowDir, 20000);
+  
   if (MOW_MOTOR_DRIVER == 1) {
     analogWriteFrequency(pinMotorMowPWM, PWM_FREQUENCY_ZSX11HV1);
     analogWriteFrequency(pinMotorMowDir, PWM_FREQUENCY_ZSX11HV1);
@@ -554,23 +567,15 @@ void Mower::setActuator(char type, int value) {
       break;
 
     case ACT_MOTOR_LEFT:
-      if (LEFT_MOTOR_DRIVER == 1) {
-        setZSX11HV1(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftBrake, value, useMotorDriveBrake);
-      }
-      if (LEFT_MOTOR_DRIVER == 4) {
-        setZSX12HV1(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftBrake, value, useMotorDriveBrake);
-      }
+      if (LEFT_MOTOR_DRIVER == 1) setZSX11HV1(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftBrake, value, useMotorDriveBrake);
+      if (LEFT_MOTOR_DRIVER == 4) setZSX12HV1(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftBrake, value, useMotorDriveBrake);
       if (LEFT_MOTOR_DRIVER == 2) setL298N(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftEnable, value);
       if (LEFT_MOTOR_DRIVER == 3) setBTS7960(pinMotorLeftDir, pinMotorLeftPWM, pinMotorLeftEnable, value);
       break;
 
     case ACT_MOTOR_RIGHT:
-      if (RIGHT_MOTOR_DRIVER == 1)  {
-        setZSX11HV1(pinMotorRightDir, pinMotorRightPWM, pinMotorRightBrake, value, useMotorDriveBrake);
-      }
-      if (RIGHT_MOTOR_DRIVER == 4)  {
-        setZSX12HV1(pinMotorRightDir, pinMotorRightPWM, pinMotorRightBrake, value, useMotorDriveBrake);
-      }
+      if (RIGHT_MOTOR_DRIVER == 1) setZSX11HV1(pinMotorRightDir, pinMotorRightPWM, pinMotorRightBrake, value, useMotorDriveBrake);
+      if (RIGHT_MOTOR_DRIVER == 4) setZSX12HV1(pinMotorRightDir, pinMotorRightPWM, pinMotorRightBrake, value, useMotorDriveBrake);
       if (RIGHT_MOTOR_DRIVER == 2) setL298N(pinMotorRightDir, pinMotorRightPWM, pinMotorRightEnable, value);
       if (RIGHT_MOTOR_DRIVER == 3) setBTS7960(pinMotorRightDir, pinMotorRightPWM, pinMotorRightEnable, value);
       break;
@@ -578,14 +583,7 @@ void Mower::setActuator(char type, int value) {
     case ACT_USER_OUT1: digitalWrite(pinUserOut1, value); break;
     case ACT_USER_OUT2: digitalWrite(pinUserOut2, value); break;
     case ACT_USER_OUT3: digitalWrite(pinUserOut3, value); break;
-    // case ACT_USER_OUT4: digitalWrite(pinUserOut4, value); break;
-    /*
-      case ACT_USER_SW1: digitalWrite(pinUserSwitch1, value); break;
-      case ACT_USER_SW2: digitalWrite(pinUserSwitch2, value); break;
-      case ACT_USER_SW3: digitalWrite(pinUserSwitch3, value); break;
-    */
     case ACT_CHGRELAY: digitalWrite(pinChargeEnable, value); break;
-    //case ACT_CHGRELAY: digitalWrite(pinChargeEnable, !value); break;
     case ACT_BATTERY_SW: digitalWrite(pinBatterySwitch, value); break;
   }
 }

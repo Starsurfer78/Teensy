@@ -3,16 +3,18 @@
 #include "RpiRemote.h"
 #define N_FLOATS 4
 
-
 uint16_t var_checksum;
-
 String RpiCmd;
+
 
 
 void RpiRemote::init() {
   RaspberryPIPort.begin(CONSOLE_BAUDRATE);
 
 }
+
+
+
 void RpiRemote::run() {
   readPi();
   if ((millis() >= nextTimeRaspberryPISendStat) && (millis() >= 35000)) { // start to send the stat only after 35 sec on power up to wait pi start and receive all setting
@@ -56,6 +58,8 @@ void RpiRemote::run() {
   }
 }
 
+
+
 void RpiRemote::receivePiCommand (String ActuatorName, int value) {
   if (ActuatorName == "mowmotor") {
     if (value == 1) {
@@ -67,6 +71,8 @@ void RpiRemote::receivePiCommand (String ActuatorName, int value) {
   }
 }
 
+
+
 void RpiRemote::sendCommandToPi(String stringLine) {
   String lineToSend;
   lineToSend = "RMCMD,";
@@ -74,6 +80,7 @@ void RpiRemote::sendCommandToPi(String stringLine) {
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
+
 
 
 void RpiRemote::RaspberryPISendDebug (String data) {
@@ -85,7 +92,6 @@ void RpiRemote::RaspberryPISendDebug (String data) {
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
-
 
 
 
@@ -607,6 +613,9 @@ void RpiRemote::receivePiReqSetting (String Setting_page, int nb_page) {
 
   }
 }
+
+
+
 void RpiRemote::RaspberryPISendMow () {
   String lineToSend;
   lineToSend = "RMMOW";
@@ -622,6 +631,8 @@ void RpiRemote::RaspberryPISendMow () {
   writePi(lineToSend);
 }
 
+
+
 void RpiRemote::RaspberryPISendGpsLocalisation(){
   String lineToSend;
   lineToSend = "RMGPS";
@@ -634,6 +645,7 @@ void RpiRemote::RaspberryPISendGpsLocalisation(){
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
+
 
 
 void RpiRemote::RaspberryPISendMot () {
@@ -654,6 +666,9 @@ void RpiRemote::RaspberryPISendMot () {
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
+
+
+
 void RpiRemote::RaspberryPISendPeri () {
   String lineToSend;
   lineToSend = "RMPER";
@@ -669,6 +684,9 @@ void RpiRemote::RaspberryPISendPeri () {
 
   writePi(lineToSend);
 }
+
+
+
 void RpiRemote::RaspberryPISendBat () {
   String lineToSend;
   lineToSend = "RMBAT";
@@ -683,6 +701,9 @@ void RpiRemote::RaspberryPISendBat () {
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
+
+
+
 void RpiRemote::RaspberryPISendByLane () {
   String lineToSend;
   lineToSend = "RMBYL";
@@ -700,6 +721,8 @@ void RpiRemote::RaspberryPISendByLane () {
   writePi(lineToSend);
 }
 
+
+
 void RpiRemote::RaspberryPISendImu () {
   String lineToSend;
   lineToSend = "RMIMU";
@@ -713,8 +736,9 @@ void RpiRemote::RaspberryPISendImu () {
   writePi(lineToSend);
 }
 
-void RpiRemote::RaspberryPISendInfo () {
 
+
+void RpiRemote::RaspberryPISendInfo () {
   //ShowMessage(motorPowerMax);
   String lineToSend;
   lineToSend = "RMINF";
@@ -740,6 +764,8 @@ void RpiRemote::RaspberryPISendInfo () {
   writePi(lineToSend);
 }
 
+
+
 void RpiRemote::SendStatusToPi () {
   //ShowMessage("New Status : ");
   //ShowMessageln(robot->statusCurr);
@@ -764,9 +790,7 @@ void RpiRemote::SendStatusToPi () {
     lineToSend = lineToSend + ",";
     lineToSend = lineToSend + "8";
     lineToSend = lineToSend + ",";
-  }
-  else
-  {
+  } else {
     lineToSend = lineToSend + "1";
     lineToSend = lineToSend + ",";
     lineToSend = lineToSend + "2";
@@ -786,6 +810,8 @@ void RpiRemote::SendStatusToPi () {
   }
   writePi(lineToSend);
 }
+
+
 
 void RpiRemote::SendRfidToPi () {
   //ShowMessage("New Status : ");
@@ -812,6 +838,8 @@ void RpiRemote::SendRfidToPi () {
   lineToSend = lineToSend + ",";
   writePi(lineToSend);
 }
+
+
 
 void RpiRemote::RaspberryPISendStat () {
   //ShowMessage(motorPowerMax);
@@ -842,9 +870,13 @@ void RpiRemote::RaspberryPISendStat () {
   writePi(lineToSend);
 }
 
+
+
 void RpiRemote::setRobot(Robot *aRobot) {
   this->robot = aRobot;
 }
+
+
 
 void RpiRemote::writePi(String stringLine) {
   String lineToSend;
@@ -863,6 +895,8 @@ void RpiRemote::writePi(String stringLine) {
   //ShowMessageln(lineToSend);
 }
 
+
+
 void RpiRemote::readPi() {
   if (!RaspberryPIPort.available())
     return;
@@ -874,14 +908,14 @@ void RpiRemote::readPi() {
   }
 }
 
-RpiRemote::Tokeniser::Tokeniser(char* _str, char _token)
-{
+
+RpiRemote::Tokeniser::Tokeniser(char* _str, char _token) {
   str = _str;
   token = _token;
 }
 
-boolean RpiRemote::Tokeniser::next(char* out, int len)
-{
+
+boolean RpiRemote::Tokeniser::next(char* out, int len) {
   uint8_t count = 0;
   if (str[0] == 0)
     return false;
@@ -907,8 +941,9 @@ boolean RpiRemote::Tokeniser::next(char* out, int len)
   return false;
 }
 
-boolean RpiRemote::encode(char c)
-{
+
+
+boolean RpiRemote::encode(char c) {
   buf[pos] = c;
   pos++;
   if (c == '\n') //linefeed
@@ -930,15 +965,13 @@ boolean RpiRemote::encode(char c)
   return false;
 }
 
-boolean RpiRemote::process_buf()
-{
+boolean RpiRemote::process_buf() {
   if (!check_checksum()) //if checksum is bad
   {
     //Serial.println("Error Checksum");
     //Serial.println (buf);
     return false; //return
-  }
-  else {
+  } else {
     //Serial.print("Checksum OK ");
     //Serial.print (buf);
     //otherwise, what sort of message is it
@@ -953,8 +986,7 @@ boolean RpiRemote::process_buf()
 }
 
 
-uint8_t RpiRemote::create_checksum(String lineOfString)
-{
+uint8_t RpiRemote::create_checksum(String lineOfString) {
   char lineOfChar[lineOfString.length() + 1];
   lineOfString.toCharArray(lineOfChar, lineOfString.length() + 1); //need a char array to compute
 
@@ -962,18 +994,13 @@ uint8_t RpiRemote::create_checksum(String lineOfString)
   for (uint8_t posit = 0; posit < strlen(lineOfChar); posit++) {
     XOR = XOR ^ lineOfChar[posit];
   }
-
   return XOR;
-
 }
 
 
 
-boolean RpiRemote::check_checksum()
-{
-
-  if (buf[strlen(buf) - 5] == '*')
-  {
+boolean RpiRemote::check_checksum() {
+  if (buf[strlen(buf) - 5] == '*') {
     uint16_t sum = parse_hex(buf[strlen(buf) - 4]) * 16;
     sum += parse_hex(buf[strlen(buf) - 3]);
     //Serial.println(sum);
@@ -989,8 +1016,7 @@ boolean RpiRemote::check_checksum()
 }
 
 
-uint8_t RpiRemote::parse_hex(char c)
-{
+uint8_t RpiRemote::parse_hex(char c) {
   if (c < '0')
     return 0;
   if (c <= '9')
@@ -1002,9 +1028,10 @@ uint8_t RpiRemote::parse_hex(char c)
   return 0;
 }
 
+
+
 void RpiRemote::receive_request() {
   //$RMREQ,INF,2,0,3,0,0,0,*35
-
   // Serial.print("Receive a request  --> ");
   // Serial.println(buf);
   String messageType="";
@@ -1021,12 +1048,15 @@ void RpiRemote::receive_request() {
       case 1:
         messageType = token;
         break;
+
       case 2:
         message_frequency = atoi(token);
         break;
+
       case 3:
         message_trigger = atoi(token);
         break;
+
       case 4:
         max_repetition = atoi(token);
         break;
@@ -1071,9 +1101,10 @@ void RpiRemote::receive_request() {
   }
 }
 
+
+
 void RpiRemote::receive_command() {
   //$RMCMD,mowmotor,1,0,0,4*62
-
   //Serial.print("Receive a Actuator command  --> ");
   //Serial.println(buf);
   String ActuatorName = "";
@@ -1087,17 +1118,20 @@ void RpiRemote::receive_command() {
     switch (counter)
     {
       case 1:
+
         ActuatorName = token;
         break;
+
       case 2:
         value = atoi(token);
         break;
-
     }
     counter++;
   }
   receivePiCommand(ActuatorName, value);
 }
+
+
 
 void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variable in one sentence
   //Serial.print("Receive Read Write variable --> ");
@@ -1119,6 +1153,7 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
           else readOrWrite = 'r';
         }
         break;
+
       case 2:
         strcpy(variable_name[0], token);
         break;
@@ -1126,6 +1161,7 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
       case 3:
         strcpy(received_value[0] , token);
         break;
+
       case 4:
         strcpy(variable_name[1], token);
         break;
@@ -1133,6 +1169,7 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
       case 5:
         strcpy(received_value[1] , token);
         break;
+
       case 6:
         strcpy(variable_name[2], token);
         break;
@@ -1140,9 +1177,11 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
       case 7:
         strcpy(received_value[2] , token);
         break;
+
       case 8:
         strcpy(variable_name[3], token);
         break;
+
       case 9:
         strcpy(received_value[3] , token);
         break;
@@ -1169,10 +1208,7 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
         robot->ActualSpeedPeriPWM = atoi(received_value[i]);
         Serial.print("Set New perimeter tracking speed  ");
         Serial.println(robot->ActualSpeedPeriPWM);
-
       }
-
-
       //if (strncmp(variable_name[i], "newtagDistance1", 20) == 0)  robot->newtagDistance1 = atoi(received_value[i]);
       if (strncmp(variable_name[i], "newtagDistance2", 20) == 0)  robot->newtagDistance2 = atoi(received_value[i]);
       if (strncmp(variable_name[i], "areaToGo", 20) == 0)  robot->areaToGo = atoi(received_value[i]);
@@ -1181,17 +1217,13 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
       if (strncmp(variable_name[i], "nextTimeTimer", 20) == 0)  robot->nextTimeTimer = atoi(received_value[i]);
 
       //bber50
-      if (strncmp(variable_name[i], "newtagDistance1", 20) == 0)
-      {
+      if (strncmp(variable_name[i], "newtagDistance1", 20) == 0) {
         robot->newtagDistance1 = atoi(received_value[i]);
         robot->whereToResetSpeed =  robot->totalDistDrive + robot->newtagDistance1; // when a speed tag is read it's where the speed is back to maxpwm value
         Serial.print("Change speed for ");
         Serial.print(robot->newtagDistance1);
         Serial.println(" centimeters");
-
-
       }
-
 
       if (strncmp(variable_name[i], "areaInMowing", 20) == 0) {
         robot->areaInMowing = atoi(received_value[i]);
@@ -1208,34 +1240,25 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
       }
 
       if (strncmp(variable_name[i], "gpsUse", 20) == 0) {
-        if (strncmp(received_value[i], "0", 1) == 0)
-        {
+        if (strncmp(received_value[i], "0", 1) == 0) {
           robot->gpsUse = false;
           // robot->gpsReady=false;
           GpsPort.flush();
           GpsPort.end();
-        }
-        else
-        {
+        } else {
           robot->gpsUse = true;
           robot->gps.init();
-
         }
       }
-
     }
   }
   if (readOrWrite == 'r') {
-
   }
-
 }
 
 
 
-
-void RpiRemote::readWrite_setting()
-{
+void RpiRemote::readWrite_setting() {
   //Serial.print("Receive Read Write setting command  --> ");
   //Serial.println(buf);
   String Setting_page;
@@ -1252,46 +1275,55 @@ void RpiRemote::readWrite_setting()
       case 1:
         Setting_page = token;
         break;
+
       case 2:
         if (token[0] == 'w') readOrWrite = 'w';
         else readOrWrite = 'r';
         break;
+
       case 3:
         nr_page = atoi(token);
         break;
+
       case 4:
         val[0] = atof(token);
         break;
+
       case 5:
         val[1] = atof(token);
         break;
+
       case 6:
         val[2] = atof(token);
         break;
+
       case 7:
         val[3] = atof(token);
         break;
+
       case 8:
         val[4] = atof(token);
         break;
+
       case 9:
         val[5] = atof(token);
         break;
+
       case 10:
         val[6] = atof(token);
         break;
+
       case 11:
         val[7] = atof(token);
         break;
+
       case 12:
         val[8] = atof(token);
         break;
+
       case 13:
         val[9] = atof(token);
         break;
-
-
-
     }
     counter++;
   }
@@ -1311,10 +1343,8 @@ void RpiRemote::readWrite_setting()
           robot->timer[i].startNrLane = val[7];
           robot->timer[i].startRollDir = val[8];
           robot->timer[i].startLaneMaxlengh = val[9];
-
         }
       }
-
     }
 
     if (Setting_page == "Timer1") {
@@ -1326,7 +1356,6 @@ void RpiRemote::readWrite_setting()
       }
 
     }
-
     //********************************************************The Bylane set Setting**********************************************
     if (Setting_page == "ByLane") {
       if (nr_page == 1) {
@@ -1521,8 +1550,7 @@ void RpiRemote::readWrite_setting()
 
 
 
-void RpiRemote::read_pfo()
-{
+void RpiRemote::read_pfo() {
   //Serial.print("Receive Pfod command  --> ");
   //Serial.println(buf);
   float val[2] ;
@@ -1539,28 +1567,26 @@ void RpiRemote::read_pfo()
       case 1: //command as char
         RpiCmd = token;
         break;
+
       case 2:
         val[0] = atof(token);
         break;
+
       case 3:
         val[1] = atof(token);
         break;
+
       case 4:
         val[2] = atof(token);
         break;
-
-
 
       case 8: //sample  : one char
         {
           if (token[0] == 'S');
         }
         break;
-
-
     }
     counter++;
   }
-
   robot->receivePiPfodCommand (RpiCmd, val[0], val[1], val[2]);
 }

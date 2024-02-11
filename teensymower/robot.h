@@ -41,10 +41,9 @@
 #include <SD.h>
 #include <SPI.h>
 const int chipSelect = BUILTIN_SDCARD;
-/*
-  Generic robot class - subclass to implement concrete hardware!
 
-*/
+
+/* Generic robot class - subclass to implement concrete hardware! */
 
 // sensors
 enum {
@@ -225,7 +224,7 @@ class Robot
     boolean sdCardReady;
     int totalLineOnFile;
 
-    char historyFilenameChar[15]; // need a char array for sd card open
+    char historyFilenameChar[25]; // need a char array for sd card open
     boolean developerActive;
     boolean ConsoleToPfod;
     boolean sdcardToPfod; // use to stop mqtt message went list a file in pfod raw data mode
@@ -243,7 +242,7 @@ class Robot
     unsigned long stateTime;
     const char* stateName();
     const char* statusName();
-    char* rfidToDoName();
+    const char* rfidToDoName();
 
     //const String area1_ip="10.0.0.150";
     //const String area2_ip="10.0.0.151";
@@ -294,6 +293,10 @@ class Robot
     int odometryTicksPerRevolution ;   // encoder ticks per one full resolution
     float odometryTicksPerCm ;  // encoder ticks per cm
     float odometryWheelBaseCm ;    // wheel-to-wheel distance (cm)
+    
+    float wheelCircumference; //SD
+    float wheelDiameter;  //SD
+
     int odometryLeft ;   // left wheel counter
     int odometryRight ;  // right wheel counter
     boolean odometryLeftLastState;
@@ -713,7 +716,7 @@ class Robot
     boolean beepState;//for the beeper true when sound
     unsigned long  nextTimeBeeper;// use for beeper
     boolean startByTimer; // use to know if the start is initiate by timer or manual via PFOD
-    int whereToStart; // use to know where the mower need to leave the wire and start to mow
+    long unsigned int whereToStart; // use to know where the mower need to leave the wire and start to mow
     unsigned int whereToResetSpeed; // use with Rfid Speed to know when reset to maxpwm
 
     int beaconToStart; // use to know where the mower need to leave the wire and start to mow

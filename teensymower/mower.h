@@ -94,6 +94,7 @@ const String area3_ip = "10.0.0.158";
 #define INA226_MOW3_PRESENT false
 
 #define ODOMETRY_ONLY_RISING false
+
 #endif
 
 
@@ -125,6 +126,7 @@ const String area3_ip = "10.0.0.158";
 #define INA226_MOW3_PRESENT false
 
 #define ODOMETRY_ONLY_RISING false
+
 #endif
 
 
@@ -157,6 +159,8 @@ const String area3_ip = "10.0.0.158";
 
 #define ODOMETRY_ONLY_RISING false
 #endif
+
+
 
 #define PWM_FREQUENCY_ZSX11HV1  20000 //
 #define PWM_FREQUENCY_L298N  10000

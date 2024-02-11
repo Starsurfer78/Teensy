@@ -74,7 +74,7 @@ const char* statusNames[] = {"WAIT", "NORMALMOWING", "SPIRALEMOWING", "BACKTOSTA
 
 const char* mowPatternNames[] = {"RAND", "LANE",  "WIRE" , "ZIGZAG"};
 const char* consoleModeNames[] = {"sen_counters", "sen_values", "perimeter", "off", "Tracking"};
-char* rfidToDoNames[] = {"NOTHING", "RTS", "FAST_START", "NEW_AREA", "SPEED", "AREA1", "AREA2", "AREA3"};
+const char* rfidToDoNames[] = {"NOTHING", "RTS", "FAST_START", "NEW_AREA", "SPEED", "AREA1", "AREA2", "AREA3"};
 
 //for debug only
 unsigned long StartReadAt;
@@ -90,6 +90,7 @@ unsigned long ReadDuration;
 #include "battery.h"
 #include "bumper.h"
 #include "console.h"
+#include "timers.h"
 
 
 
@@ -297,96 +298,6 @@ const char* Robot::mowPatternNameList(byte mowPatternIndex) {
 
 
 
-void Robot::setDefaultTime() {
-  datetime.time.hour = 12;
-  datetime.time.minute = 25;
-  datetime.date.dayOfWeek = 0;
-  datetime.date.day = 26;
-  datetime.date.month = 4;
-  datetime.date.year = 2021;
-  timer[0].active = false;
-  timer[0].daysOfWeek = B01111110;
-  timer[0].startTime.hour = 9;
-  timer[0].stopTime.hour = 11;
-}
-
-
-
-// check timer
-void Robot::checkTimer() {
-  if (millis() < nextTimeTimer) return;
-  nextTimeTimer = millis() + 60000;  // one minute check
-  srand(time2minutes(datetime.time)); // initializes the pseudo-random number generator for c++ rand()
-  randomSeed(time2minutes(datetime.time)); // initializes the pseudo-random number generator for arduino random()
-  boolean stopTimerTriggered = true;
-  if (timerUse) {
-    Serial.println("checktimer");
-    for (int i = 0; i < MAX_TIMERS; i++) {
-      if (timer[i].active) {
-        if  ( (timer[i].daysOfWeek & (1 << datetime.date.dayOfWeek)) != 0) {
-          int startmin = time2minutes(timer[i].startTime);
-          int stopmin =  time2minutes(timer[i].stopTime);
-          int currmin =  time2minutes(datetime.time);
-
-          Serial.print("Timer ");
-          Serial.print(i);
-          Serial.print(" startmin ");
-          Serial.print(startmin);
-
-          Serial.print(" stopmin ");
-          Serial.print(stopmin);
-
-          Serial.print(" currmin ");
-          Serial.println(currmin);
-
-          if ((currmin >= startmin) && (currmin < stopmin)) {
-            // start timer triggered
-            stopTimerTriggered = false;
-            if ((stateCurr == STATE_STATION)) {
-              Serial.print("Timer ");
-              Serial.print(i);
-              Serial.println(F(" start triggered"));
-              ActualRunningTimer = i;
-              //motorMowEnable = true;
-              findedYaw = 999;
-              imuDirPID.reset();
-              mowPatternCurr = timer[i].startMowPattern;
-              laneUseNr = timer[i].startNrLane;
-              rollDir = timer[i].startRollDir;
-              whereToStart = timer[i].startDistance;
-              areaToGo = timer[i].startArea;
-              actualLenghtByLane = timer[i].startLaneMaxlengh;
-              beaconToStart = timer[i].rfidBeacon;
-              startByTimer = true;
-              mowPatternDuration = 0;
-              totalDistDrive = 0;
-              Serial.print(F(" Track for area "));
-              Serial.println(areaToGo);
-              Serial.print(F(" Distance before start "));
-              Serial.println(whereToStart);
-
-              setNextState(STATE_START_FROM_STATION, 1);
-              return;
-              // setNextState(STATE_STATION_REV, 0);
-            }
-          }
-        }
-        if ((stateCurr != STATE_STATION) && (stopTimerTriggered) && (ActualRunningTimer == i)) { //Stop only the running timer
-          Serial.println(F("timer stop triggered"));
-          ActualRunningTimer = 99;
-          if (perimeterUse) {
-            setNextState(STATE_PERI_FIND, 0);
-          } else {
-            setNextState(STATE_OFF, 0);
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
 void Robot::receiveGPSTime() {
   if (gpsUse) {
     unsigned long chars = 0;
@@ -552,51 +463,6 @@ void Robot::startStopSender(int senderNr, boolean startStop) {
 
 
 
-/*
-  void Robot::readMowerSensor(char type) {
-
-  // the azurit readsensor send an integer to robot.cpp so can't use getVoltage from adcman as it's float
-  switch (type) {
-    // motors------------------------------------------------------------------------------------------------
-    case SEN_MOTOR_MOW: return ADCMan.getValue(pinMotorMowSense); break;
-    case SEN_MOTOR_RIGHT: checkMotorFault(); return ADCMan.getValue(pinMotorRightSense); break;
-    case SEN_MOTOR_LEFT: checkMotorFault(); return ADCMan.getValue(pinMotorLeftSense); break;
-    //case SEN_MOTOR_MOW_RPM: break; // not used - rpm is upated via interrupt
-    // perimeter----------------------------------------------------------------------------------------------
-    case SEN_PERIM_LEFT: return perimeter.getMagnitude(0); break;
-    case SEN_PERIM_RIGHT: return perimeter.getMagnitude(1); break;
-    // battery------------------------------------------------------------------------------------------------
-    case SEN_BAT_VOLTAGE: return ADCMan.getValue(pinBatteryVoltage) ; break;
-    case SEN_CHG_VOLTAGE: return ADCMan.getValue(pinChargeVoltage)  ; break;
-    case SEN_CHG_CURRENT: return ADCMan.getValue(pinChargeCurrent) ;  break;
-    // buttons------------------------------------------------------------------------------------------------
-    case SEN_BUTTON: return (digitalRead(pinButton)); break;
-    //bumper----------------------------------------------------------------------------------------------------
-    case SEN_BUMPER_RIGHT: return (digitalRead(pinBumperRight)); break;
-    case SEN_BUMPER_LEFT: return (digitalRead(pinBumperLeft)); break;
-    // sonar---------------------------------------------------------------------------------------------------
-    case SEN_SONAR_CENTER: return (NewSonarCenter.ping_cm()); break;
-    case SEN_SONAR_LEFT: return (NewSonarLeft.ping_cm()); break;
-    case SEN_SONAR_RIGHT: return (NewSonarRight.ping_cm()); break;
-    // case SEN_LAWN_FRONT: return(measureLawnCapacity(pinLawnFrontSend, pinLawnFrontRecv)); break;
-    //case SEN_LAWN_BACK: return(measureLawnCapacity(pinLawnBackSend, pinLawnBackRecv)); break;
-    // rtc--------------------------------------------------------------------------------------------------------
-    case SEN_RTC:
-      if (!readDS1307(datetime)) {
-        ShowMessageln("RTC data error!");
-        addErrorCounter(ERR_RTC_DATA);
-        setNextState(STATE_ERROR, 0);
-      }
-      break;
-    // rain--------------------------------------------------------------------------------------------------------
-    case SEN_RAIN: if (digitalRead(pinRain) == LOW) return 1; break;
-  }
-  return 0;
-  }
-*/
-
-
-
 void Robot::teensyBootLoader() {
   delayWithWatchdog(8000); //wait for pyteensy to stop and start pi teensy loader
   asm("bkpt #251");
@@ -737,10 +603,6 @@ void Robot::setUserOut() {
   volatile float Pulse01;
   volatile float Pulse02;
 */
-
-
-
-
 
 
 
@@ -1282,7 +1144,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       UseBrakeLeft = 1;
       UseAccelRight = 1;
       UseBrakeRight = 1;
-      if (mowPatternCurr == MOW_LANES)       AngleRotate = 90;
+      if (mowPatternCurr == MOW_LANES) AngleRotate = 90;
       else AngleRotate = random(30, 160);
       if (startByTimer) AngleRotate = stationRollAngle;
       if (track_ClockWise) {
@@ -2488,7 +2350,8 @@ void Robot::writeOnSD(String message) {
     totalLineOnFile = totalLineOnFile + 1;
     if (totalLineOnFile >= 1000) { // create a new log file if too long
       totalLineOnFile = 0;
-      sprintf(historyFilenameChar, "%02u%02u%02u%02u%02u.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+      //sprintf(historyFilenameChar, "%02u%02u%02u%02u%02u.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+      snprintf(historyFilenameChar, sizeof(historyFilenameChar), "%02d%02d%02d%02d%02d.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
     }
   }
 }
@@ -2506,7 +2369,8 @@ void Robot::writeOnSDln(String message) {
     totalLineOnFile = totalLineOnFile + 1;
     if (totalLineOnFile >= 1000) { // create a new log file if too long
       totalLineOnFile = 0;
-      sprintf(historyFilenameChar, "%02u%02u%02u%02u%02u.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+      //sprintf(historyFilenameChar, "%02u%02u%02u%02u%02u.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+      snprintf(historyFilenameChar, sizeof(historyFilenameChar), "%02d%02d%02d%02d%02d.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
     }
   }
 }
@@ -2931,7 +2795,8 @@ void Robot::setup()  {
     ShowMessageln("SD Card failed, or not present");
     sdCardReady = false;
   } else {
-    sprintf(historyFilenameChar, "%02d%02d%02d%02d%02d.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+    //sprintf(historyFilenameChar, "%02d%02d%02d%02d%02d.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
+    snprintf(historyFilenameChar, sizeof(historyFilenameChar), "%02d%02d%02d%02d%02d.txt", datetime.date.year - 2000, datetime.date.month, datetime.date.day, datetime.time.hour, datetime.time.minute);
     sdCardReady = true;
     ShowMessage("SD card Ok  ");
     //count the number of file present on SD Card

@@ -40,8 +40,10 @@ void Screen::init() {
   u8g2.sendBuffer();
 
 }
-void Screen::refreshMowScreen() {
 
+
+
+void Screen::refreshMowScreen() {
   // battery icon
   batLevel = map(int(robot.batVoltage), int(robot.batSwitchOffIfBelow), int(robot.batFull), 0, 25);
   batLevel = constrain(batLevel, 0, 25);
@@ -81,12 +83,13 @@ void Screen::refreshMowScreen() {
   u8g2.clearBuffer();
 
 }
-void Screen::refreshStationScreen() {
-  /*
 
-  */
+
+
+void Screen::refreshStationScreen() {
   u8g2.setFont(u8g2_font_ncenB14_tr);
-  if (robot.stateName() == "CHARG") {
+  //if (robot.stateName() == "CHARG") {
+  if (strcmp(robot.stateName(), "CHARG") == 0) {
     u8g2.setFont(u8g2_font_ncenB08_tr);
     u8g2.setCursor(10, 20);
     u8g2.print("Bat Volt :");
@@ -106,18 +109,13 @@ void Screen::refreshStationScreen() {
     u8g2.print((millis() - robot.stateStartTime) / 60000);
 
     u8g2.setFont(u8g2_font_ncenB14_tr);
-
-
-
     //battery icon flashing
     batLevel = batLevel + 1;
     if (batLevel >= 25) batLevel = 0;
     u8g2.drawFrame(99, 0, 27, 10);
     u8g2.drawBox(101, 2, batLevel, 6);
     u8g2.drawBox(126, 3, 2, 4);
-  }
-  else
-  {
+  } else {
     batLevel = map(int(robot.batVoltage), int(robot.batSwitchOffIfBelow), int(robot.batFull), 0, 25);
     batLevel = constrain(batLevel, 0, 25);
     u8g2.drawFrame(99, 0, 27, 10);
@@ -136,14 +134,12 @@ void Screen::refreshStationScreen() {
     u8g2.print("Bat Volt :");
     u8g2.setCursor(80, 20);
     u8g2.print(robot.batVoltage, 1);
-
-
   }
-
   u8g2.sendBuffer();
   u8g2.clearBuffer();
-
 }
+
+
 
 void Screen::refreshWaitScreen() {
   // battery icon
@@ -154,19 +150,13 @@ void Screen::refreshWaitScreen() {
   u8g2.drawBox(126, 3, 2, 4);
 
   //bumper test
-
   if (BUMPER_ARE_NORMALY_CLOSED) {
     if (digitalRead(pinBumperLeft) == 0) u8g2.drawBox(0, 30, 10, 10);
     if (digitalRead(pinBumperRight) == 0) u8g2.drawBox(117, 30, 10, 10);
-  }
-  else
-  {
+  } else {
     if (digitalRead(pinBumperLeft) == 1) u8g2.drawBox(0, 30, 10, 10);
     if (digitalRead(pinBumperRight) == 1) u8g2.drawBox(117, 30, 10, 10);
   }
-
-
-
   u8g2.setFont(u8g2_font_ncenB08_tr);
   u8g2.setCursor(60, 10);
   u8g2.print(int(robot.loopsPerSec));
@@ -189,6 +179,8 @@ void Screen::refreshWaitScreen() {
   u8g2.clearBuffer();
 }
 
+
+
 void Screen::refreshErrorScreen() {
   u8g2.setFont(u8g2_font_ncenB14_tr);
   u8g2.setCursor(20, 14);
@@ -196,6 +188,9 @@ void Screen::refreshErrorScreen() {
   u8g2.sendBuffer();
   u8g2.clearBuffer();
 }
+
+
+
 void Screen::refreshTrackScreen() {
   // battery icon
   /*

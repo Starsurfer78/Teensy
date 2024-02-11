@@ -1,5 +1,12 @@
-char* Robot::rfidToDoName() {
-  return rfidToDoNames[rfidToDoCurr];
+//char* Robot::rfidToDoName() {
+//  return rfidToDoNames[rfidToDoCurr];
+//}
+
+const char* Robot::rfidToDoName() {
+    // Kopie der Zeichenkette erstellen und zurückgeben
+    static char buffer[32]; // Größe an deine Anforderungen anpassen
+    strcpy(buffer, rfidToDoNames[rfidToDoCurr]);
+    return buffer;
 }
 
 

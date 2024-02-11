@@ -57,7 +57,7 @@ void PerimeterClass::changeArea(byte areaInMowing) {
 
 }
 
-static void PerimeterClass::adc1_isr() {//this is the main adc1 loop executed each 24 microseconds
+void PerimeterClass::adc1_isr() {//this is the main adc1 loop executed each 24 microseconds
   uint16_t adc_val = adc->adc1->readSingle();
   if (buffer_adc_1_count < BUFFER_SIZE) {
     buffer_ADC_1[buffer_adc_1_count++] = adc_val;
@@ -75,7 +75,8 @@ static void PerimeterClass::adc1_isr() {//this is the main adc1 loop executed ea
   }
   asm("DSB");
 }
-static void PerimeterClass::adc0_isr() { //this is the main adc0 loop executed each 24 microseconds
+
+void PerimeterClass::adc0_isr() { //this is the main adc0 loop executed each 24 microseconds
   //Serial.println(buffer_adc_0_count);
   uint16_t adc_val = adc->adc0->readSingle();
   if (buffer_adc_0_count < BUFFER_SIZE) {
@@ -97,16 +98,11 @@ static void PerimeterClass::adc0_isr() { //this is the main adc0 loop executed e
 
 
 void PerimeterClass::begin(byte idx0Pin, byte idx1Pin) {
-
- 
-
   idxPin[0] = idx0Pin;
   idxPin[1] = idx1Pin;
 
-
   pinMode(idx0Pin, INPUT);
   pinMode(idx1Pin, INPUT);
-
 
   Serial.print("Begin setup adc0 on pin:");
   Serial.println(idx0Pin);
@@ -133,7 +129,6 @@ void PerimeterClass::begin(byte idx0Pin, byte idx1Pin) {
     Serial.print("Begin setup adc1 on pin:");
     Serial.println(idx1Pin);
 
-
     ////// ADC1 /////
     adc->adc1->setAveraging(32); // set number of averages
     adc->adc1->setResolution(10); // set bits of resolution
@@ -149,9 +144,6 @@ void PerimeterClass::begin(byte idx0Pin, byte idx1Pin) {
     buffer_adc_1_count = 0;
     Serial.println("adc1 Timer Interrupt Started");
   }
-
-
-
 }
 
 

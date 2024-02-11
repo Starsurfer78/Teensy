@@ -42,19 +42,11 @@ class PerimeterClass
     int timedOutIfBelowSmag;
     unsigned long timeOutSecIfNotInside;
     
-   
-   
     unsigned long lastInsideTime[2];
    
- 
   private:
-
-
     static void adc0_isr();
     static void adc1_isr();
-
-
-
     byte idxPin[2]; // channel for idx
     //int callCounter;
     int16_t mag [2]; // perimeter magnitude per channel
