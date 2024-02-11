@@ -11,6 +11,9 @@
 #include "robot.h"
 #include "drivers.h"
 
+// code version
+#define VER "1.483-Teensyber_01"
+
 const String area1_ip = "10.0.0.150";
 const String area2_ip = "10.0.0.151";
 const String area3_ip = "10.0.0.158";
@@ -18,27 +21,27 @@ const String area3_ip = "10.0.0.158";
 //**************************************************************
 // ------- select one platform type -------------------
 //**************************************************************
-#define MI632
+//#define MI632
 //#define YARDFORCE
 //#define RL2000
-//#define MOW800
+#define MOW800
 
 //**************************************************************
 // ------- select one mainPCB -------------------
 //**************************************************************
-#define PCB_V101
-//#define PCB_V103
+//#define PCB_V101
+#define PCB_V103
 
 
 //**************************************************************
 //***************** SETTING FOR MI632 **************************
 //**************************************************************
-
 #if defined (MI632)  // here all setting for viking mi632 
 //*****************possible list of motor driver set to :****************
 // 1 for brushless ZS-X11H v1 Driver
 // 2 for DC L298N Driver
 // 3 for DC BTS7960 Driver
+// 4 for brushless ZS-X12H Driver
 #define LEFT_MOTOR_DRIVER 1  //never mix BL and DC on drive motor
 #define RIGHT_MOTOR_DRIVER 1
 #define MOW_MOTOR_DRIVER 1
@@ -61,17 +64,19 @@ const String area3_ip = "10.0.0.158";
 
 #endif
 
+
+
 //**************************************************************
 //******************** SETTING FOR  YARDFORCE ******************
 //**************************************************************
-
 #if defined (YARDFORCE)  // here all setting for YARDFORCE 
 //*****************possible list of motor driver set to :****************
 // 1 for brushless ZS-X11H v1 Driver
 // 2 for DC L298N Driver
 // 3 for DC BTS7960 Driver
-#define LEFT_MOTOR_DRIVER 1  //never mix BL and DC on drive motor
-#define RIGHT_MOTOR_DRIVER 1
+// 4 for brushless ZS-X12H Driver
+#define LEFT_MOTOR_DRIVER 4  //never mix BL and DC on drive motor
+#define RIGHT_MOTOR_DRIVER 4
 #define MOW_MOTOR_DRIVER 1
 
 #define BUMPER_IS_SWITCH false  // set to true if the bumper is a single ON/OFF switch
@@ -91,10 +96,11 @@ const String area3_ip = "10.0.0.158";
 #define ODOMETRY_ONLY_RISING false
 #endif
 
+
+
 //**************************************************************
 //****************** SETTING FOR MOW800 ************************
 //**************************************************************
-
 #if defined (MOW800)  // here all setting for MOW800 
 //*****************possible list of motor driver set to :****************
 // 1 for brushless ZS-X11H v1 Driver
@@ -106,7 +112,7 @@ const String area3_ip = "10.0.0.158";
 
 #define BUMPER_IS_SWITCH false  // set to true if the bumper is a single ON/OFF switch
 #define BUMPER_REAR_EXIST false  // set to true to manage the rear bumper connected on CAN3 J20 connector
-#define BUMPER_ARE_NORMALY_CLOSED true  // set to true if the bumper contact is closed when nothing is hit
+#define BUMPER_ARE_NORMALY_CLOSED false  // set to true if the bumper contact is closed when nothing is hit
 
 #define START_BUTTON_IS_NC false //if button is normaly closed
 
@@ -121,11 +127,11 @@ const String area3_ip = "10.0.0.158";
 #define ODOMETRY_ONLY_RISING false
 #endif
 
+
+
 //**************************************************************
 //****************** SETTING FOR  ROBOMOW RL2000 ***************
 //**************************************************************
-
-
 #if defined (RL2000)  // here all setting for YARDFORCE 
 //*****************possible list of motor driver set to :****************
 // 1 for brushless ZS-X11H v1 Driver
@@ -151,8 +157,6 @@ const String area3_ip = "10.0.0.158";
 
 #define ODOMETRY_ONLY_RISING false
 #endif
-
-
 
 #define PWM_FREQUENCY_ZSX11HV1  20000 //
 #define PWM_FREQUENCY_L298N  10000
@@ -185,10 +189,7 @@ const String area3_ip = "10.0.0.158";
 //#define SIGCODE_3  // Ardumower alternative perimeter signal
 
 
-
-
 // ------ pins---------------------------------------
-
 #define pinMotorLeftEnable  5         // EN motors enable
 #define pinMotorLeftPWM 7          // M1_IN1 left motor PWM pin
 #define pinMotorLeftDir 6         // M1_IN2 left motor Dir pin
@@ -199,27 +200,31 @@ const String area3_ip = "10.0.0.158";
 
 #define pinMotorMowPWM 10           // M1_IN1 mower motor PWM pin (if using MOSFET, use this pin)
 #define pinMotorMowDir 9          // M1_IN2 mower motor Dir pin (if using MOSFET, keep unconnected)
+
 #define pinBumperLeft 35          // bumper pins
 #define pinBumperRight 36
+
 #define pinBumperRearLeft 30          // bumper pins
 #define pinBumperRearRight 31
+
 #define pinSonarRightTrigger 29  //BBER10
 #define pinSonarRightEcho A13
 #define pinSonarLeftTrigger 28   //BBER10
 #define pinSonarLeftEcho A12
 
-
 #define pinPerimeterRight A8       // perimeter
 #define pinPerimeterLeft A9
+
 #define pinBuzzer 37               // Buzzer
 #define pinButton 38             // digital ON/OFF button
 #define pinBatterySwitch 33         // battery-OFF switch   
 #define pinChargeEnable 34          // charge relay
+
 #define pinOdometryLeft 12     // left odometry sensor
 #define pinOdometryRight 11   // right odometry sensor  
+
 #define pinRain 39                 // rain sensor
 #define pinCover A17            // cover contact
-
 
 #if defined (PCB_V103)  // here all setting for pcb1.03
 #define pinMotorLeftBrake  A16

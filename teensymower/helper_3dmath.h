@@ -91,6 +91,8 @@ class Quaternion {
         }
 };
 
+
+
 class VectorInt16 {
     public:
         int16_t x;
@@ -157,6 +159,8 @@ class VectorInt16 {
             return r;
         }
 };
+
+
 
 class VectorFloat {
     public:

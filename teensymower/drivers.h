@@ -87,11 +87,6 @@ template <typename T> int sign(T val) {
 
 //int freeRam();
   
-// print helpers
-void StreamPrint_progmem(Print &out,PGM_P format,...);
-//#define Serialprint(format, ...) StreamPrint_progmem(Serial,PSTR(format),##__VA_ARGS__)
-#define Streamprint(stream,format, ...) StreamPrint_progmem(stream,PSTR(format),##__VA_ARGS__)
-//String verToString(int v);
 
 // time helpers
 void minutes2time(int minutes, timehm_t &time);
@@ -110,6 +105,8 @@ double distancePI(double x, double w);
 // motor drivers
 void setPwmFrequency(int pin, int divisor);
 void setZSX11HV1(int pinDir, int pinPWM, int pinBrake, int speed, boolean brake);
+void setZSX12HV1(int pinDir, int pinPWM, int pinBrake, int speed, boolean brake);
+
 void setL298N(int pinDir, int pinPWM, int pinEnable, int speed);
 void setRomeoMotor(int pinDir, int pinPWM, int speed);
 void setMC33926(int pinDir, int pinPWM, int speed);
