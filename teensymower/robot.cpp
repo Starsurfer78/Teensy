@@ -923,6 +923,7 @@ void Robot::readSensors() {
       }
     }
     // rear bumper
+    if (BUMPER_REAR_EXIST) {
     if (BUMPER_ARE_NORMALY_CLOSED) {
       if (digitalRead(pinBumperRearLeft) == 1) {
         //ShowMessageln("Bumper left trigger");
@@ -947,6 +948,7 @@ void Robot::readSensors() {
         bumperRearRightCounter++;
         bumperRearRight = true;
       }
+    }
     }
   }
   if (millis() >= nextTimeRTC) {
@@ -2990,7 +2992,7 @@ void Robot::loop()  {
   }
   rc.readSerial();// see the readserial function into pfod.cpp
 
-  readSensors();
+  readSensors(); ///Realy?
   readAllTemperature();
   checkRobotStats();
   checkPerimeterBoundary();
@@ -3233,7 +3235,7 @@ void Robot::loop()  {
       }
       if (millis() > (stateStartTime + MaxOdoStateDuration)) {
         if (developerActive) {
-          ShowMessageln ("Warning can t PERI_OBSTACLE_REV in time ");
+          ShowMessageln ("Warning can't PERI_OBSTACLE_REV in time ");
         }
         setNextState(STATE_PERI_OBSTACLE_ROLL, RIGHT);
       }

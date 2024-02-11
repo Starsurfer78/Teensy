@@ -1,4 +1,4 @@
-// check bumpers
+// check bumpersumperLeft
 void Robot::checkBumpers() {
   if ((millis() < 3000) || (!bumperUse)) return;
   /*
