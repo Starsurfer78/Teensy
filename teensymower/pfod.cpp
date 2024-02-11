@@ -23,8 +23,6 @@
 
 // Android remote control (pfod App)
 // For a detailed specification of the pfodApp protocol, please visit:  http://www.forward.com.au/pfod/
-
-
 #include "pfod.h"
 #include "robot.h"
 #include "imu.h"

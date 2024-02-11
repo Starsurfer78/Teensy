@@ -152,7 +152,6 @@ class IMUClass {
       float statsYawMin;
       int statsGyroCalibrationTimeMax;
     */
-
     void meansensors();
     void calibration();
     void begin();
