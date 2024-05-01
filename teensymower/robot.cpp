@@ -2893,10 +2893,16 @@ void Robot::setup()  {
   ShowMessageln(consoleModeNames[consoleMode]);
 
   ShowMessageln ("Starting Ina226 current sensor ");
-  MotLeftIna226.begin(0x41);
-  ChargeIna226.begin(0x40);
-  MotRightIna226.begin(0x44);
-  Mow1Ina226.begin_I2C1(0x40);  //MOW1 is connect on I2C1
+  MotLeftIna226.begin(INALEFTADRESS);
+  ChargeIna226.begin(INABATADRESS);
+  MotRightIna226.begin(INARIGHTADRESS);
+  
+  if (PowerPCB_small)  {
+    Mow2Ina226.begin(INAMOWADRESS);
+  } else {
+    Mow1Ina226.begin_I2C1(INAMOWADRESS);  //MOW1 is connect on I2C1
+  }
+
   if (INA226_MOW2_PRESENT) Mow2Ina226.begin_I2C1(0x41);  //MOW2 is connect on I2C1
   if (INA226_MOW3_PRESENT) Mow3Ina226.begin_I2C1(0x44);  //MOW3 is connect on I2C1
 
