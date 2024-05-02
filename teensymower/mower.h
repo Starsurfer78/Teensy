@@ -12,7 +12,7 @@
 #include "drivers.h"
 
 // code version
-#define VER "1.483-Teensyber_01"
+#define VER "1.483-Teensyber_02"
 
 const String area1_ip = "10.0.0.150";
 const String area2_ip = "10.0.0.151";
@@ -32,6 +32,8 @@ const String area3_ip = "10.0.0.158";
 //#define PCB_V101
 #define PCB_V103
 
+//####### POWERPCB ###########
+#define PowerPCB_small true
 
 //**************************************************************
 //***************** SETTING FOR MI632 **************************
@@ -121,9 +123,6 @@ const String area3_ip = "10.0.0.158";
 // start button is under cover , so after push the start button you have 10 seconde to close cover and mower start
 // openning the cover stop mowing cycle
 #define MOWER_HAVE_SECURITY_COVER false // mower can have a cover that stop the mowing cycle but power still on the PCB,mower only start after closing the cover
-
-//####### POWERPCB ###########
-#define PowerPCB_small true
 
 //####### INA ADRESS #########
 #define INABATADRESS 0x40     //No soldering

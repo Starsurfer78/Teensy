@@ -801,21 +801,21 @@ void Robot::readSensors() {
     unsigned long readingDuration;
 
     if (powerboard_I2c_line_Ok) {
-      motorRightPower = MotRightIna226.readBusPower() ;
-      motorLeftPower  = MotLeftIna226.readBusPower() ;
+      motorRightPower = MotRightIna226.readBusPower();
+      motorLeftPower  = MotLeftIna226.readBusPower();
       //POWER PCB SMALL UPDATE
-      if (PowerPCB_small)  {
-        Mow1_Power = Mow1Ina226.readBusPower(INAMOWADRESS);
+      if (PowerPCB_small) {
+        Mow1_Power = Mow1Ina226.readBusPower();
         } else {
-          Mow1_Power = Mow1Ina226.readBusPower_I2C1(INAMOWADRESS);  //MOW1 is connect on I2C1
-          } //END POWER PCB SMALL UPDATE
+          Mow1_Power = Mow1Ina226.readBusPower_I2C1();  //MOW1 is connect on I2C1
+        } //END POWER PCB SMALL UPDATE
       if (INA226_MOW2_PRESENT) {
-        Mow2_Power = Mow2Ina226.readBusPower_I2C1() ;
+        Mow2_Power = Mow2Ina226.readBusPower_I2C1();
       } else {
         Mow2_Power = 0;
       }
       if (INA226_MOW3_PRESENT) {
-        Mow3_Power = Mow3Ina226.readBusPower_I2C1() ;
+        Mow3_Power = Mow3Ina226.readBusPower_I2C1();
       } else {
         Mow3_Power = 0;
       }
@@ -2823,6 +2823,11 @@ void Robot::setup()  {
   }
   ShowMessage("Version : ");
   ShowMessageln(VER);
+  
+  //New
+  ShowMessageln(name);
+  if (PowerPCB_small) ShowMessage("Use PowerPCB SMALL");
+  
 
   if (ODOMETRY_ONLY_RISING) {
     attachInterrupt(digitalPinToInterrupt(pinOdometryRight), OdoRightCountInt, RISING);
@@ -2902,7 +2907,7 @@ void Robot::setup()  {
   ChargeIna226.begin(INABATADRESS);
   MotRightIna226.begin(INARIGHTADRESS);
   
-  if (PowerPCB_small)  {
+  if (PowerPCB_small) {
     Mow1Ina226.begin(INAMOWADRESS);
   } else {
     Mow1Ina226.begin_I2C1(INAMOWADRESS);  //MOW1 is connect on I2C1
@@ -2927,16 +2932,18 @@ void Robot::setup()  {
     powerboard_I2c_line_Ok = false;
   }
   //POWERPCB SMALL
-  if (PowerPCB_small)  {
+  if (PowerPCB_small) {
+    ShowMessageln("USE POWERPCB SMALL");
     if (!Mow1Ina226.isConnected(INAMOWADRESS)) {
     ShowMessageln("INA226 MOW1 is not OK");
     powerboard_I2c_line_Ok = false;
-      } else {
-        Mow1Ina226.begin_I2C1(INAMOWADRESS);  //MOW1 is connect on I2C1
-        ShowMessageln("INA226 MOW1 is not OK");
-        powerboard_I2c_line_Ok = false;
-        }
+    } 
+  } else {
+    Mow1Ina226.begin_I2C1(INAMOWADRESS);  //MOW1 is connect on I2C1
+    ShowMessageln("INA226 MOW1 is not OK (I2C1)");
+    powerboard_I2c_line_Ok = false;
   }
+  
   if ((INA226_MOW2_PRESENT) && (!Mow2Ina226.isConnected_I2C1(0x41))) {
     ShowMessageln("INA226 MOW2 is not OK");
     powerboard_I2c_line_Ok = false;
@@ -2953,7 +2960,7 @@ void Robot::setup()  {
     MotLeftIna226.configure(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
     MotRightIna226.configure(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
     //I2C1 bus
-    if (PowerPCB_small)  {
+    if (PowerPCB_small) {
       Mow1Ina226.configure(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
       } else {
         Mow1Ina226.configure_I2C1(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
@@ -2967,7 +2974,7 @@ void Robot::setup()  {
     MotLeftIna226.calibrate(0.02, 4);
     MotRightIna226.calibrate(0.02, 4);
     //I2C1 bus
-    if (PowerPCB_small)  {
+    if (PowerPCB_small) {
     Mow1Ina226.calibrate(0.02, 4);
     } else {
       Mow1Ina226.calibrate_I2C1(0.02, 4);
