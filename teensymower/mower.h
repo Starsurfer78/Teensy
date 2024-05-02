@@ -122,12 +122,14 @@ const String area3_ip = "10.0.0.158";
 // openning the cover stop mowing cycle
 #define MOWER_HAVE_SECURITY_COVER false // mower can have a cover that stop the mowing cycle but power still on the PCB,mower only start after closing the cover
 
+//####### POWERPCB ###########
 #define PowerPCB_small true
 
-#define INABATADRESS 0x64 //A0 and A1 on GND
-#define INAMOWADRESS 0x65 //A0 on VCC
-#define INALEFTADRESS 0x68
-#define INARIGHTADRESS 0x69
+//####### INA ADRESS #########
+#define INABATADRESS 0x40     //No soldering
+#define INAMOWADRESS 0x45     //A0+A1+VCC
+#define INALEFTADRESS 0x44    //VCC+A1
+#define INARIGHTADRESS 0x41   //VCC+A0
 
 #define INA226_MOW2_PRESENT false
 #define INA226_MOW3_PRESENT false
