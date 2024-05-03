@@ -303,11 +303,11 @@ Mower::Mower() {
   MaxSpeedperiPwm          = 120; // speed max in PWM while perimeter tracking
   perimeterMagMaxValue     = 12000; // Maximum value return when near the perimeter wire (use for tracking and slowing when near wire
 
-  odometryTicksPerRevolution = 1200; // encoder ticks per one full resolution
-  double wheelDiameter = 23.0;        // in cm
+  odometryTicksPerRevolution = 1135; // encoder ticks per one full resolution
+  double wheelDiameter = 20.5;        // in cm
   double circumference = calculateWheelCircumference(wheelDiameter);
-  double odometryTicksPerCm = odometryTicksPerRevolution / circumference;
-  odometryWheelBaseCm = 33;           // wheel-to-wheel distance (cm)
+  double odometryTicksPerCm = odometryTicksPerRevolution / circumference; //17.5
+  odometryWheelBaseCm = 34;           // wheel-to-wheel distance (cm)
   
 #endif
 

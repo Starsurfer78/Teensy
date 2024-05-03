@@ -129,7 +129,7 @@ void Robot::setMotorPWM(int pwmLeft, int pwmRight) {
 }
 
 
-
+/*
 void Robot::OdoRampCompute() { //execute only one time when a new state execution
   //Compute the accel duration (very important for small distance)
   //Compute when you need to brake the 2 wheels to stop at the ODO
@@ -220,46 +220,76 @@ void Robot::OdoRampCompute() { //execute only one time when a new state executio
   if (statusCurr == REMOTE) {   //possible heading change
     imuDriveHeading = remoteDriveHeading / PI * 180;
   }
-  /*
-    ShowMessage(" **************** compute  at  ");
-    ShowMessageln(millis());
-    ShowMessage(" UseAccelRight ");
-    ShowMessage(UseAccelRight);
-    ShowMessage(" UseBrakeRight ");
-    ShowMessage(UseBrakeRight);
-    ShowMessage(" UseAccelLeft ");
-    ShowMessage(UseAccelLeft);
-    ShowMessage(" UseBrakeLeft ");
-    ShowMessage(UseBrakeLeft);
-    ShowMessage(" distToMoveLeft ");
-    ShowMessage(distToMoveLeft);
-    ShowMessage(" movingTimeLeft ");
-    ShowMessage(movingTimeLeft);
-    ShowMessage("ms movingTimeRight ");
-    ShowMessageln(movingTimeRight);
-    ShowMessage("accelDurationLeft ");
-    ShowMessage(accelDurationLeft);
-    ShowMessage("ms accelDurationRight ");
-    ShowMessageln(accelDurationRight);
 
-    ShowMessage (F(stateNames[stateNext]));
-    ShowMessage(" RightSpeedRpmSet ");
-    ShowMessage(motorRightSpeedRpmSet);
-    ShowMessage("  PwmRightSpeed ");
-    ShowMessage(PwmRightSpeed);
-    ShowMessage("  SpeedOdoMaxRight ");
-    ShowMessageln(SpeedOdoMaxRight);
-
-    ShowMessage("OdoStartBrakeLeft ");
-    ShowMessage(OdoStartBrakeLeft);
-    ShowMessage("Ticks OdoStartBrakeRight ");
-    ShowMessageln(OdoStartBrakeRight);
-    ShowMessage("MaxOdoStateDuration ");
-    ShowMessage(MaxOdoStateDuration);
-    ShowMessageln(" ms");
-  */
 }
+*/
 
+void Robot::OdoRampCompute() {
+  // Zustandsbeginn-Odometrie speichern
+  stateStartOdometryLeft = odometryLeft;
+  stateStartOdometryRight = odometryRight;
+
+  // Motor-Regler zurücksetzen und PWM-Geschwindigkeiten begrenzen
+  motorRightPID.reset();
+  PwmRightSpeed = constrain(map(motorRightSpeedRpmSet, -motorSpeedMaxRpm, motorSpeedMaxRpm, -motorSpeedMaxPwm, motorSpeedMaxPwm), -motorSpeedMaxPwm, motorSpeedMaxPwm);
+  PwmLeftSpeed = constrain(map(motorLeftSpeedRpmSet, -motorSpeedMaxRpm, motorSpeedMaxRpm, -motorSpeedMaxPwm, motorSpeedMaxPwm), -motorSpeedMaxPwm, motorSpeedMaxPwm);
+
+  // Entfernung zwischen den aktuellen und letzten Odometriezählungen berechnen
+  int distToMoveLeft = abs(stateStartOdometryLeft - stateEndOdometryLeft);
+  int distToMoveRight = abs(stateStartOdometryRight - stateEndOdometryRight);
+ 
+  // Berechnung des Bremsstarts und der maximalen Geschwindigkeit für das linke Rad
+  if (distToMoveLeft >= odometryTicksPerRevolution) {
+    OdoStartBrakeLeft = odometryTicksPerRevolution / 2;
+    SpeedOdoMaxLeft = PwmLeftSpeed;
+  } else {
+    if (UseAccelLeft && UseBrakeLeft) {
+      OdoStartBrakeLeft = distToMoveLeft / 2;
+      SpeedOdoMaxLeft = map(distToMoveLeft / 2, odometryTicksPerRevolution / 2, 0, PwmLeftSpeed <= 0 ? PwmLeftSpeed : -SpeedOdoMax, PwmLeftSpeed <= 0 ? -SpeedOdoMax : PwmLeftSpeed);
+    } else {
+      OdoStartBrakeLeft = distToMoveLeft;
+      SpeedOdoMaxLeft = map(distToMoveLeft, odometryTicksPerRevolution / 2, 0, PwmLeftSpeed <= 0 ? PwmLeftSpeed : -SpeedOdoMax, PwmLeftSpeed <= 0 ? -SpeedOdoMax : PwmLeftSpeed);
+    }
+  }
+
+  // Berechnung des Bremsstarts und der maximalen Geschwindigkeit für das rechte Rad
+  if (distToMoveRight >= odometryTicksPerRevolution) {
+    OdoStartBrakeRight = odometryTicksPerRevolution / 2;
+    SpeedOdoMaxRight = PwmRightSpeed;
+  } else {
+    if (UseAccelRight && UseBrakeRight) {
+      OdoStartBrakeRight = distToMoveRight / 2;
+      SpeedOdoMaxRight = map(distToMoveRight / 2, odometryTicksPerRevolution / 2, 0, PwmRightSpeed <= 0 ? PwmRightSpeed : -SpeedOdoMax, PwmRightSpeed <= 0 ? -SpeedOdoMax : PwmRightSpeed);
+    } else {
+      OdoStartBrakeRight = distToMoveRight;
+      SpeedOdoMaxRight = map(distToMoveRight, odometryTicksPerRevolution / 2, 0, PwmRightSpeed <= 0 ? PwmRightSpeed : -SpeedOdoMax, PwmRightSpeed <= 0 ? -SpeedOdoMax : PwmRightSpeed);
+    }
+  }
+
+  // Bewegungsdauer berechnen und ggf. anpassen
+  movingTimeLeft = 1000 * distToMoveLeft / motorTickPerSecond ;
+  movingTimeLeft = movingTimeLeft * motorSpeedMaxPwm / abs(SpeedOdoMaxLeft);
+  if (movingTimeLeft < 4000) movingTimeLeft = 4000; // Mindestbewegungsdauer erhöhen
+  movingTimeRight = 1000 * distToMoveRight / motorTickPerSecond ;
+  movingTimeRight = movingTimeRight * motorSpeedMaxPwm / abs(SpeedOdoMaxRight);
+  if (movingTimeRight < 4000) movingTimeRight = 4000; // Mindestbewegungsdauer erhöhen
+
+  // Beschleunigungsdauer berechnen und ggf. anpassen
+  accelDurationLeft = movingTimeLeft >= motorOdoAccel ? motorOdoAccel : movingTimeLeft / 2;
+  accelDurationRight = movingTimeRight >= motorOdoAccel ? motorOdoAccel : movingTimeRight / 2;
+
+  // Maximale Zustandsdauer berechnen
+  MaxOdoStateDuration = statusCurr == TESTING ? 30000 + max(movingTimeRight, movingTimeLeft) : 3000 + max(movingTimeRight, movingTimeLeft);
+
+  // Fahrtrichtung basierend auf dem aktuellen Zustand festlegen
+  if (statusCurr == BACK_TO_STATION) {
+    imuDriveHeading = periFindDriveHeading / PI * 180;
+  } else if (statusCurr == REMOTE) {
+    imuDriveHeading = remoteDriveHeading / PI * 180;
+  } else {
+    imuDriveHeading = imu.ypr.yaw / PI * 180;
+  }
+}
 
 
 void Robot::motorControlOdo() {
@@ -1031,6 +1061,58 @@ void Robot::motorMowControl() {
 
 // calculate map position by odometry sensors
 void Robot::calcOdometry() {
+  if (millis() < nextTimeOdometry || stateCurr == STATE_OFF) return;
+
+  nextTimeOdometry = millis() + 100; // Intervall für Odometrieberechnung
+  
+  static int lastOdoLeft = 0;
+  static int lastOdoRight = 0;
+  int odoLeft = odometryLeft;
+  int odoRight = odometryRight;
+  
+  int ticksLeft = odoLeft - lastOdoLeft;
+  int ticksRight = odoRight - lastOdoRight;
+  
+  lastOdoLeft = odoLeft;
+  lastOdoRight = odoRight;
+  
+  double left_cm = static_cast<double>(ticksLeft) / odometryTicksPerCm;
+  double right_cm = static_cast<double>(ticksRight) / odometryTicksPerCm;
+  double avg_cm  = (left_cm + right_cm) / 2.0;
+  double wheel_theta = (left_cm - right_cm) / odometryWheelBaseCm;
+  
+  odometryTheta = scalePI(odometryTheta - wheel_theta);
+
+  // Debugging-Ausgabe
+  Serial.println("----- Odometry Debug -----");
+  Serial.print("Ticks Left: ");
+  Serial.println(ticksLeft);
+  Serial.print("Ticks Right: ");
+  Serial.println(ticksRight);
+  Serial.print("Average Distance: ");
+  Serial.println(avg_cm);
+  Serial.print("Theta: ");
+  Serial.println(odometryTheta);
+  Serial.println("---------------------------");
+
+  // Berechne Motordrehzahlen nur bei Bedarf
+  if (stateCurr == STATE_PERI_TRACK) {
+    totalDistDrive += static_cast<int>(avg_cm);
+  }
+  currDistToDrive += static_cast<int>(avg_cm);
+
+  // Aktualisiere die Roboterposition
+  if (imuUse) {
+    odometryX += avg_cm * sin(prevYawCalcOdo);
+    odometryY += avg_cm * cos(prevYawCalcOdo);
+  } else {
+    odometryX += avg_cm * sin(odometryTheta);
+    odometryY += avg_cm * cos(odometryTheta);
+  }
+}
+
+/*
+void Robot::calcOdometry() {
   if ((millis() < nextTimeOdometry) || (stateCurr == STATE_OFF)) return;
   nextTimeOdometry = millis() + 100; //bb 300 at the original but test less
   static int lastOdoLeft = 0;
@@ -1062,7 +1144,7 @@ void Robot::calcOdometry() {
     odometryY += avg_cm * cos(odometryTheta);
   }
 }
-
+*/
 
 
 void Robot::testMotors() {

@@ -48,8 +48,8 @@ const String area3_ip = "10.0.0.158";
 #define RIGHT_MOTOR_DRIVER 1
 #define MOW_MOTOR_DRIVER 1
 
-#define BUMPER_IS_SWITCH false  // set to true if the bumper is a single ON/OFF switch
-#define BUMPER_REAR_EXIST true  // set to true to manage the rear bumper connected on CAN3 J20 connector
+#define BUMPER_IS_SWITCH true  // set to true if the bumper is a single ON/OFF switch
+#define BUMPER_REAR_EXIST false  // set to true to manage the rear bumper connected on CAN3 J20 connector
 #define BUMPER_ARE_NORMALY_CLOSED false  // set to true if the bumper contact is closed when nothing is hit
 
 #define START_BUTTON_IS_NC true //if button is normaly closed
@@ -113,7 +113,7 @@ const String area3_ip = "10.0.0.158";
 #define RIGHT_MOTOR_DRIVER 1
 #define MOW_MOTOR_DRIVER 1
 
-#define BUMPER_IS_SWITCH false  // set to true if the bumper is a single ON/OFF switch
+#define BUMPER_IS_SWITCH true  // set to true if the bumper is a single ON/OFF switch
 #define BUMPER_REAR_EXIST false  // set to true to manage the rear bumper connected on CAN3 J20 connector
 #define BUMPER_ARE_NORMALY_CLOSED false  // set to true if the bumper contact is closed when nothing is hit
 
